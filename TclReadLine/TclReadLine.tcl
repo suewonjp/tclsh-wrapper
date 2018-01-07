@@ -11,14 +11,15 @@ namespace eval TclReadLine {
     namespace export interact
 
     # Initialise our own env variables:
-    variable PROMPT {\033\[36m> \033\[0m}
-    variable COMPLETION_MATCH ""
+    variable PROMPT {[ESC]\[36m> [ESC]\[0m}
     
     # Support extensions to the completion handling
     # which will be called in list order.
     # Initialize with the "open sourced" TCL base handler
     # taken from the wiki page
     variable COMPLETION_HANDLERS [list TclReadLine::handleCompletionBase]
+
+    variable USER_KEYWORDS
 
     #
     #  This value was determined by measuring 
@@ -46,8 +47,20 @@ namespace eval TclReadLine {
     variable HISTORY_SIZE 100
     variable HISTORY_LEVEL 0
     variable HISTFILE $::env(HOME)/.tclline_history
-    #variable  RCFILE $::env(HOME)/.tcllinerc
+    variable  RCFILE $::env(HOME)/.tcllinerc
+
+    #variable LOG_MSGS [list]
 }
+
+#proc TclReadLine::log {value} {
+    #variable LOG_MSGS
+    #lappend LOG_MSGS $value
+#}
+
+#proc TclReadLine::dumpLog {} {
+    #variable LOG_MSGS
+    #puts [join $LOG_MSGS "\n"]
+#}
 
 proc TclReadLine::ESC {} {
     return "\033"
@@ -293,7 +306,7 @@ proc TclReadLine::processHistorySearch {searchWord {direction 1}} {
     variable HSEARCH_LIST
     variable HSEARCH_INDICES
     variable HSEARCH_WORD
-    switch -- $HSEARCH_STATE {
+    switch -exact -- $HSEARCH_STATE {
         OFF {
         }
         SWITCH_ON {
@@ -396,7 +409,7 @@ proc TclReadLine::handleEscapes {} {
                 set CMDLINE [string replace $CMDLINE $CMDLINE_CURSOR $dstCursor]
             }
             "/" {
-                set CMDLINE {/}
+                set CMDLINE {?}
                 set CMDLINE_CURSOR 1
             }
             "0" {
@@ -557,18 +570,6 @@ proc TclReadLine::handleControls {} {
     set keybuffer ""
 }
 
-proc TclReadLine::shortMatch {maybe} {
-    # Find the shortest matching substring:
-    set maybe [lsort $maybe]
-    set shortest [lindex $maybe 0]
-    foreach x $maybe {
-        while {![string match $shortest* $x]} {
-            set shortest [string range $shortest 0 end-1]
-        }
-    }
-    return $shortest
-}
-
 proc TclReadLine::addCompletionHandler {completion_extension} {
     variable COMPLETION_HANDLERS
     set COMPLETION_HANDLERS [concat $completion_extension $COMPLETION_HANDLERS]
@@ -594,6 +595,11 @@ proc TclReadLine::handleCompletion {} {
     return 
 }
 
+proc TclReadLine::keyword {kw} {
+    variable USER_KEYWORDS
+    lappend USER_KEYWORDS $kw
+}
+
 proc TclReadLine::handleCompletionBase {} {
     variable CMDLINE
     variable CMDLINE_CURSOR
@@ -602,21 +608,22 @@ proc TclReadLine::handleCompletionBase {} {
     set cmds ""
     set execs ""
     set files ""
+    set extras ""
     
     # First find out what kind of word we need to complete:
-    set wordstart [string last " " $CMDLINE [expr {$CMDLINE_CURSOR-1}]]
+    set wordend [expr $CMDLINE_CURSOR-1]
+    set wordstart [string last " " $CMDLINE $wordend]
     incr wordstart
-    set wordend [string first " " $CMDLINE $wordstart]
-    if {$wordend == -1} {
-        set wordend end
-    } else {
-        incr wordend -1
-    }
     set word [string range $CMDLINE $wordstart $wordend]
     
     if {[string trim $word] == ""} return
-    
+
     set firstchar [string index $word 0]
+    set gp {*}
+    if {[string length $word] > 1 && [string index $word end] == {$}} {
+        set word [string replace $word end end {}]
+        set gp {}
+    }
     
     # Check if word is a variable:
     if {$firstchar == "\$"} {
@@ -636,7 +643,7 @@ proc TclReadLine::handleCompletionBase {} {
             }
         } else {
             foreach x [uplevel \#0 {info vars}] {
-                if {[string match $word* $x]} {
+                if {[string match "$word$gp" $x]} {
                     lappend vars $x
                 }
             }
@@ -659,21 +666,21 @@ proc TclReadLine::handleCompletionBase {} {
                         set exe [string trimleft [string range $f \
                                                       [string length $dir] end] "/"]
                         
-                        if {[lsearch -exact $execs $exe] == -1} {
+                        if {[string match "$word$gp" $exe]} {
                             lappend execs $exe
                         }
                     }
                 }
                 # Check commands:
                 foreach x [info commands] {
-                    if {[string match $word* $x]} {
+                    if {[string match "$word$gp" $x]} {
                         lappend cmds $x
                     }
                 }
             } else {
                 # Check commands anyway:
                 foreach x [info commands] {
-                    if {[string match $word* $x]} {
+                    if {[string match "$word$gp" $x]} {
                         lappend cmds $x
                     }
                 }
@@ -692,51 +699,52 @@ proc TclReadLine::handleCompletionBase {} {
                 }
             } else {
                 foreach x [uplevel \#0 {info vars}] {
-                    if {[string match $word* $x]} {
+                    if {[string match "$word$gp" $x]} {
                         lappend vars $x
                     }
                 }
             }
         }
     }
-    
-    variable COMPLETION_MATCH
-    set maybe [concat $vars $cmds $execs $files]
-    set shortest [shortMatch $maybe]
-    if {"$word" == "$shortest"} {
-        if {[llength $maybe] > 1 && $COMPLETION_MATCH != $maybe} {
-            set COMPLETION_MATCH $maybe
-            clearline
-            set temp ""
-            foreach {match format} {
-                vars  "35"
-                cmds  "1;32"
-                execs "32"
-                files "0"
-            } {
-                if {[llength [set $match]]} {
-                    append temp "[ESC]\[${format}m"
-                    foreach x [set $match] {
-                        append temp "[file tail $x] "
-                    }
-                    append temp "[ESC]\[0m"
+
+    variable USER_KEYWORDS
+    foreach kw $USER_KEYWORDS {
+        if {[string match "$word$gp" $kw]} {
+            lappend extras $kw
+        }
+    }
+
+    set maybe [lsort -unique [concat $vars $cmds $execs $files $extras]]
+    if {[llength $maybe] > 1} {
+        clearline
+        set temp ""
+        foreach {match format} {
+            vars  "35"
+            cmds  "1;32"
+            execs "32"
+            files "0"
+            extras "33"
+        } {
+            if {[llength [set $match]]} {
+                append temp "[ESC]\[${format}m"
+                foreach x [set $match] {
+                    append temp "[file tail $x] "
                 }
+                append temp "[ESC]\[0m"
             }
-            print "\n$temp\n"
         }
-    } else {
-        if {[file isdirectory $shortest] &&
-            [string index $shortest end] != "/"} {
-            append shortest "/"
+        print "\n$temp\n"
+    } elseif {[llength $maybe]} {
+        set match [lindex $maybe 0]
+        if {[file isdirectory $match] &&
+            [string index $match end] != "/"} {
+            append match "/"
         }
-        if {$shortest != ""} {
+        if {$match != ""} {
             set CMDLINE \
-                [string replace $CMDLINE $wordstart $wordend $shortest]
+                [string replace $CMDLINE $wordstart $wordend $match]
             set CMDLINE_CURSOR \
-                [expr {$wordstart+[string length $shortest]}]
-        } elseif { $COMPLETION_MATCH != " not found "} {
-            set COMPLETION_MATCH " not found "
-            print "\nNo match found.\n"
+                [expr {$wordstart+[string length $match]}]
         }
     }
 }
@@ -876,10 +884,13 @@ proc TclReadLine::interact {} {
     rename ::unknown ::_unknown
     rename TclReadLine::unknown ::unknown
     
-    #variable RCFILE
-    #if {[file exists $RCFILE]} {
-        #source $RCFILE
-    #}
+    variable RCFILE
+    if {[info exists ::env(TCLLINERC)]} {
+        set RCFILE $::env(TCLLINERC)
+    }
+    if {[file exists $RCFILE]} {
+        source $RCFILE
+    }
 
     # Load history if available:
     # variable HISTORY
@@ -887,6 +898,9 @@ proc TclReadLine::interact {} {
     variable HISTORY_SIZE
     history keep $HISTORY_SIZE
     
+    if {[info exists ::env(TCLLINE_HISTORY)]} {
+        set HISTFILE $::env(TCLLINE_HISTORY)
+    }
     if {[file exists $HISTFILE]} {
         set f [open $HISTFILE r]
         set hlist [list]
@@ -983,7 +997,7 @@ proc TclReadLine::tclline {} {
         } elseif {$char == "\t"} {
             handleCompletion
         } elseif {$char == "\n" || $char == "\r"} {
-            if {[string index $CMDLINE 0] == {/}} {
+            if {[string index $CMDLINE 0] == {?}} {
                 # Search command with given words from the command history
                 set searchWord [string range $CMDLINE 1 end]
                 if {$searchWord == {}} {
@@ -1013,6 +1027,45 @@ proc TclReadLine::tclline {} {
                     # 
                     TclReadLine::addCmdToHistory $cmdline
                     set cmd [string trim [regexp -inline {^\s*[^\s]+} $cmdline]]
+                    if {[info exists TclReadLine::ALIASES($cmd)]} {
+                        regsub -- "(?q)$cmd" $cmdline $TclReadLine::ALIASES($cmd) cmdline
+                    }
+                    
+                    # Perform glob substitutions:
+                    set cmdline [string map {
+                        "\\*" \0
+                        "\\~" \1
+                    } $cmdline]
+                    #
+                    # Prevent glob substitution of *,~ for tcl commands
+                    #
+                    if {[info commands $cmd] != ""} {
+                        set cmdline [string map {
+                            "\*" \0
+                            "\~" \1
+                        } $cmdline]
+                    }
+                    while {[regexp -indices \
+                                {([\w/\.]*(?:~|\*)[\w/\.]*)+} $cmdline x]
+                       } {
+                        foreach {i n} $x break
+                        set s [string range $cmdline $i $n]
+                        set x [glob -nocomplain -- $s]
+                        
+                        # If glob can't find anything then don't do
+                        # glob substitution, pass * or ~ as literals:
+                        if {$x == ""} {
+                            set x [string map {
+                                "*" \0
+                                "~" \1
+                            } $s]
+                        }
+                        set cmdline [string replace $cmdline $i $n $x]
+                    }
+                    set cmdline [string map {
+                        \0 "*"
+                        \1 "~"
+                    } $cmdline]
                     
                     rename ::info ::_info
                     rename TclReadLine::localInfo ::info
@@ -1028,10 +1081,12 @@ proc TclReadLine::tclline {} {
                     rename ::info TclReadLine::localInfo
                     rename ::_info ::info
                     if {$code == 1} {
-                        TclReadLine::print "$::errorInfo\n"
+                        TclReadLine::print "[TclReadLine::ESC]\[31m$::errorInfo[TclReadLine::ESC]\[0m\n"
                     } else {
                         TclReadLine::print "$res\n"
                     }
+
+                    TclReadLine::setHistorySearchState SWITCH_OFF
                     
                     set TclReadLine::CMDLINE ""
                     set TclReadLine::CMDLINE_CURSOR 0
