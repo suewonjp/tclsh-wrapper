@@ -1,7 +1,7 @@
 Copyright (c) 2018- Suewon Bahng, https://github.com/suewonjp
 
-Last Updated (2018-01-xx)
+Last Updated (2018-01-12)
 
-## Version 1.2 (2018-01-xx)
+## Version 1.2 (2018-01-12)
 - First Release
 
