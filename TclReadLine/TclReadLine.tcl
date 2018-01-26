@@ -19,7 +19,7 @@ namespace eval TclReadLine {
     # taken from the wiki page
     variable COMPLETION_HANDLERS [list TclReadLine::handleCompletionBase]
 
-    variable USER_KEYWORDS
+    variable USER_KEYWORDS []
 
     #
     #  This value was determined by measuring 
