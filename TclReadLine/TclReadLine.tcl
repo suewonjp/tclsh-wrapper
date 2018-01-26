@@ -4,7 +4,7 @@
 # Read README.md included in the package for detail
 #
 
-package provide TclReadLine 1.2
+package provide TclReadLine 1.3
 
 namespace eval TclReadLine {
 
