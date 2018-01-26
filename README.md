@@ -29,9 +29,9 @@ Assume you copy the package to `~/lib/tcl`. (Of course, you can copy it anywhere
 1. Create a launcher script like so:
 
         touch tcl; chmod a+x tcl; echo "
-        > #!/bin/sh
-        > exec tclsh ~/lib/tcl/tclsh-wrapper/TclReadLine/TclReadLine.tcl
-        > " > tcl
+        #!/bin/sh
+        exec tclsh ~/lib/tcl/tclsh-wrapper/TclReadLine/TclReadLine.tcl
+        " > tcl
 1. Copy the generated `tcl` script somewhere in the system path.
 1. Now execute `tcl` instead of `tclsh`
     - Notice that the `tcl` script above is intended for interactive uses only and not a complete replacement for `tclsh`.
