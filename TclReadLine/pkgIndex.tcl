@@ -8,4 +8,4 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded TclReadLine 1.2 [list source [file join $dir TclReadLine.tcl]]
+package ifneeded TclReadLine 1.3 [list source [file join $dir TclReadLine.tcl]]
