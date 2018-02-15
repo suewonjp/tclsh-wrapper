@@ -52,6 +52,8 @@ namespace eval TclReadLine {
     #variable LOG_MSGS [list]
 }
 
+namespace path {::tcl::mathop ::tcl::mathfunc}
+
 #proc TclReadLine::log {value} {
     #variable LOG_MSGS
     #lappend LOG_MSGS $value
