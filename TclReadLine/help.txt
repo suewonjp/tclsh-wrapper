@@ -1,0 +1,63 @@
+- CONTROL + a / HOME
+    - Move the cursor to the start of the line
+- CONTROL + b / LEFT
+    - Move the cursor to the previous character
+- CONTROL + d
+    - Terminate the shell. Same as executing `exit` command.
+- CONTROL + e / END
+    - Move the cursor to the end of the line
+- CONTROL + f / RIGHT
+    - Move the cursor to the next character
+- CONTROL + g
+    - Clear the entire line
+- CONTROL + k
+    - Clear everything from the cursor to the end of the line
+    - And the cleared text will be YANKED (remembered)
+- CONTROL + y
+    - Paste the text previously yanked
+- CONTROL + n / DOWN
+    - Retrieve an older command line from the command history
+- CONTROL + p / UP
+    - Retrieve a newer command line from the command history
+- CONTROL + u
+    - Clear everything from the start of the line to the cursor
+    - And the cleared text will be YANKED (remembered)
+- CONTROL + w
+    - Delete the previous word
+- CONTROL + h / Backspace
+    - Delete the previous character
+- TAB
+    - Keyword completion for commands, variable, file path, etc.
+
+- ALT + 0
+    - Move the cursor to the start of the line. Same as CONTROL + a
+- ALT + b
+    - Move to the start of the word
+- ALT + d
+    - Delete the next word
+- ALT + e
+    - Move to the end of the word
+- ALT + f / ALT + w
+    - Move to the start of the next word
+- ALT + /
+    - Clear the entire line and insert `?` at the start of the line.
+    - This will quickly let you search commands with glob patterns through the command history
+    - Read *History Search Mode* in the documentation
+- ALT + k
+    - Retrieve an older command line from the command history
+    - Same as CONTROL + p or UP
+- ALT + j
+    - Retrieve a newer command line from the command history
+    - Same as CONTROL + n or DOWN
+- ALT + h
+    - Move the cursor to the previous character
+    - Same as CONTROL + b or LEFT
+- ALT + l
+    - Move the cursor to the next character
+    - Same as CONTROL + f or RIGHT
+- ALT + x / DELETE
+    - Delete the next character
+- Shift + LEFT
+    - Move the cursor to the previous blank
+- Shift + RIGHT
+    - Move the cursor to the next blank

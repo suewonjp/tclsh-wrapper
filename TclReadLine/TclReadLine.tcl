@@ -64,6 +64,13 @@ namespace path {::tcl::mathop ::tcl::mathfunc}
     #puts [join $LOG_MSGS "\n"]
 #}
 
+proc TclReadLine::help {} {
+    set helpfile [file join [file dirname $::argv0] help.txt]
+    set f [open $helpfile]
+    puts "\n[ESC]\[33m[read $f][ESC]\[0m"
+    close $f
+}
+
 proc TclReadLine::ESC {} {
     return "\033"
 }

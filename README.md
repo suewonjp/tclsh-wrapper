@@ -47,6 +47,8 @@ Alternatively, create a `~/.tclshrc` file and append the code as follows:
         }
 In this case, you can run `tclsh` directly, then it will read `~/.tclshrc` at startup and eventually load **Tclsh-Wrapper**.  
 
+> Once **Tclsh-Wrapper** invoked, Type `help` to print out all key bindings and additional help messages.
+
 ### :coffee: Key Bindings
 
 - CONTROL + a / HOME
