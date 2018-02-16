@@ -49,6 +49,9 @@ namespace eval TclReadLine {
     variable HISTFILE $::env(HOME)/.tclline_history
     variable  RCFILE $::env(HOME)/.tcllinerc
 
+    # Context data for multiline mode
+    variable MULTILINE_LIST [list]
+
     #variable LOG_MSGS [list]
 }
 
@@ -166,7 +169,7 @@ proc TclReadLine::localPuts {args} {
     }
 }
 
-proc TclReadLine::prompt {{txt ""}} {
+proc TclReadLine::prompt {{txt ""} {pr ""}} {
     
     if { "" != [info var ::tcl_prompt1] } {
         rename ::puts ::_origPuts
@@ -179,7 +182,11 @@ proc TclReadLine::prompt {{txt ""}} {
         rename ::_origPuts ::puts
     } else {
         variable PROMPT
-        set prompt [subst $PROMPT]
+        if { $pr != "" } {
+            set prompt [subst $pr]
+        } else {
+            set prompt [subst $PROMPT]
+        }
     }
     set txt "$prompt$txt"
     variable CMDLINE_LINES
@@ -973,17 +980,49 @@ proc TclReadLine::addCmdToHistory {cmdline} {
     history add $cmdline
 }
 
+proc TclReadLine::hasIncompleteCommands {} {
+    variable MULTILINE_LIST
+    if {[llength $MULTILINE_LIST]} {
+        return 1
+    } else {
+        return 0
+    }
+}
+
+proc TclReadLine::handleIncompleteCommands {} {
+    variable CMDLINE_CURSOR
+    variable CMDLINE
+    variable MULTILINE_LIST
+
+    lappend MULTILINE_LIST $CMDLINE
+    set CMDLINE {}
+    set CMDLINE_CURSOR 0
+    print "\n" nowait
+}
+
+proc TclReadLine::joinIncompleteCommands {} {
+    variable CMDLINE_CURSOR
+    variable CMDLINE
+    variable MULTILINE_LIST
+
+    lappend MULTILINE_LIST $CMDLINE
+    set CMDLINE [join $MULTILINE_LIST]
+    set CMDLINE_CURSOR [string length $CMDLINE]
+    set MULTILINE_LIST [list]
+}
+
 proc TclReadLine::tclline {} {
     variable COLUMNS
     variable CMDLINE_CURSOR
     variable CMDLINE
-    
+
     set char ""
     set keybuffer [read stdin]
     set COLUMNS [getColumns]
+    set pr ""
     
     check_partial_keyseq keybuffer
-    
+
     while {$keybuffer != ""} {
         if {[eof stdin]} return
         set char [readbuf keybuffer]
@@ -1006,6 +1045,10 @@ proc TclReadLine::tclline {} {
         } elseif {$char == "\t"} {
             handleCompletion
         } elseif {$char == "\n" || $char == "\r"} {
+            if {[hasIncompleteCommands]} {
+                joinIncompleteCommands
+            }
+
             if {[string index $CMDLINE 0] == {?}} {
                 # Search command with given words from the command history
                 set searchWord [string range $CMDLINE 1 end]
@@ -1023,8 +1066,7 @@ proc TclReadLine::tclline {} {
                 setHistorySearchState SWITCH_OFF
                 processHistorySearch {}
                 print "\n" nowait
-            } elseif {[info complete $CMDLINE] &&
-                [string index $CMDLINE end] != "\\"} {
+            } elseif {[info complete $CMDLINE]} {
                 lineInput
                 print "\n" nowait
                 uplevel \#0 {
@@ -1103,21 +1145,16 @@ proc TclReadLine::tclline {} {
                 } ;# end uplevel
                 rawInput
             } else {
-                set x $CMDLINE_CURSOR
-                
-                if {$x < 1 && [string trim $char] == ""} continue
-                
-                set trailing [string range $CMDLINE $x end]
-                set CMDLINE [string replace $CMDLINE $x end]
-                append CMDLINE $char
-                append CMDLINE $trailing
-                incr CMDLINE_CURSOR
+                handleIncompleteCommands
             }
         } else {
             handleControls
         }
     }
-    prompt $CMDLINE
+    if {[hasIncompleteCommands]} {
+        set pr {~ }
+    }
+    prompt $CMDLINE $pr
 }
 
 # start immediately if invoked as a script:
