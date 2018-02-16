@@ -634,6 +634,13 @@ proc TclReadLine::handleCompletionBase {} {
     
     if {[string trim $word] == ""} return
 
+    # Find exact word break position.
+    set wordbreak [tcl_wordBreakAfter $word -1]
+    if {$wordbreak > -1} {
+        set word [string range $word $wordbreak end]
+        incr wordstart $wordbreak
+    }
+
     set firstchar [string index $word 0]
     set gp {*}
     if {[string length $word] > 1 && [string index $word end] == {$}} {
