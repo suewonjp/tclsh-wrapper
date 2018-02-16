@@ -1017,7 +1017,7 @@ proc TclReadLine::tclline {} {
     variable CMDLINE
 
     set char ""
-    set keybuffer [read stdin]
+    set keybuffer [read stdin 1]
     set COLUMNS [getColumns]
     set pr ""
     
