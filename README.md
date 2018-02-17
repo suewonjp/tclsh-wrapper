@@ -36,6 +36,7 @@ Assume you copy the package to `~/lib/tcl`. (Of course, you can copy it anywhere
 1. Now execute `tcl` instead of `tclsh`
     - Notice that the `tcl` script above is intended for interactive uses only and not a complete replacement for `tclsh`.
     - You still need to use `tclsh` for executing Tcl scripts.
+    - See the [sample launcher script](tcl.sample)
 
 Alternatively, create a `~/.tclshrc` file and append the code as follows:
 
@@ -182,6 +183,8 @@ For another example, inserting the following lines into the configuration file w
         TclReadLine::keyword {string trimright}
 
 However, `s*trim<TAB>` will print out 3 candidates (`string trim`, `string trimleft`, `string trimright`). If your target were `string trimleft`, then what you do is just appending `l` and type `<TAB>`. What if your target were `string trim`? Then, type `s*trim$<TAB>`. `$` notation at the end will match words ending with the character before that `$`.
+
+> See the [sample .tcllinerc file](.tcllinerc.sample)
 
 ##### :tea: History File Path
 **Tclsh-Wrapper** persists the command history records to a file. (`~/tclline_history` by default)

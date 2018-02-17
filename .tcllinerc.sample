@@ -1,8 +1,29 @@
-#!/bin/sh
+TclReadLine::alias l {puts "\\033\\[35m===========================================\\033\\[0m"}
+TclReadLine::alias p puts
+TclReadLine::alias %d {TclReadLine::dumpLog}
+TclReadLine::alias %a {TclReadLine::alias}
+TclReadLine::alias %u {TclReadLine::unalias}
 
-if [ "$1" = "w" ]; then
-    TCLLINE_HISTORY=~/.tclline_history_w exec wish ~/lib/tcl/tclsh-wrapper/TclReadLine/TclReadLine.tcl
-else
-    TCLLINE_HISTORY=~/.tclline_history exec tclsh ~/lib/tcl/tclsh-wrapper/TclReadLine/TclReadLine.tcl
-fi
+TclReadLine::keyword {TclReadLine::}
+
+TclReadLine::keyword {string cat}
+TclReadLine::keyword {string compare}
+TclReadLine::keyword {string equal}
+TclReadLine::keyword {string first}
+TclReadLine::keyword {string index}
+TclReadLine::keyword {string is}
+TclReadLine::keyword {string last}
+TclReadLine::keyword {string length}
+TclReadLine::keyword {string map}
+TclReadLine::keyword {string match}
+TclReadLine::keyword {string range}
+TclReadLine::keyword {string repeat}
+TclReadLine::keyword {string replace}
+TclReadLine::keyword {string reverse}
+TclReadLine::keyword {string tolower}
+TclReadLine::keyword {string totitle}
+TclReadLine::keyword {string toupper}
+TclReadLine::keyword {string trim}
+TclReadLine::keyword {string trimleft}
+TclReadLine::keyword {string trimright}
 

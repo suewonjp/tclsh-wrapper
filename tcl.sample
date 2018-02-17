@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ "$1" = "w" ]; then
+    TCLLINE_HISTORY=~/.tclline_history_w exec wish ~/lib/tcl/tclsh-wrapper/TclReadLine/TclReadLine.tcl
+else
+    TCLLINE_HISTORY=~/.tclline_history exec tclsh ~/lib/tcl/tclsh-wrapper/TclReadLine/TclReadLine.tcl
+fi
+
