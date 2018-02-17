@@ -948,6 +948,8 @@ proc TclReadLine::interact {} {
     # Do not unalias this!
     alias exit TclReadLine::doExit
     
+    alias help {TclReadLine::help}
+
     variable ThisScript [info script]
     
     tclline ;# emit the first prompt
