@@ -635,13 +635,16 @@ proc TclReadLine::handleCompletionBase {} {
     incr wordstart
     set word [string range $CMDLINE $wordstart $wordend]
     
-    if {[string trim $word] == ""} return
+    if {[string trim $word " \{\}"] == ""} return
 
-    # Find exact word break position.
-    set wordbreak [tcl_wordBreakAfter $word -1]
-    if {$wordbreak > -1} {
-        set word [string range $word $wordbreak end]
-        incr wordstart $wordbreak
+    if {[string is wordchar [string index $word 0]] == 0} {
+        # The leftmost character of $word is not a word character yet.
+        # Find the leftmost word boundary and reflect it to $word.
+        set wordbreak [tcl_wordBreakAfter $word -1]
+        if {$wordbreak > -1} {
+            set word [string range $word $wordbreak end]
+            incr wordstart $wordbreak
+        }
     }
 
     set firstchar [string index $word 0]
