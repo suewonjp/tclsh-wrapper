@@ -713,6 +713,20 @@ proc TclReadLine::handleCompletionBase {} {
                         lappend cmds $x
                     }
                 }
+                # Check ensemble commands
+                set prevwordstart [tcl_startOfPreviousWord $CMDLINE $wordstart]
+                set prevwordend [tcl_endOfWord $CMDLINE $prevwordstart]
+                incr prevwordend -1
+                set prevword [string range $CMDLINE $prevwordstart $prevwordend]
+                if {[info command $prevword] != ""} {
+                    if {![catch {set ensemblecmds [namespace ensemble configure $prevword -map]}]} {
+                        dict for {x v} $ensemblecmds {
+                            if {[string match "$word$gp" $x]} {
+                                lappend cmds $x
+                            }
+                        }
+                    }
+                }
             }
         }
         if {$wordstart != 0} {
