@@ -51,21 +51,24 @@ namespace eval TclReadLine {
 
     # Context data for multiline mode
     variable MULTILINE_LIST [list]
-
-    #variable LOG_MSGS [list]
 }
 
 namespace path {::tcl::mathop ::tcl::mathfunc}
 
-#proc TclReadLine::log {value} {
-    #variable LOG_MSGS
-    #lappend LOG_MSGS $value
-#}
+# Debug purpose utils
+if 0 {
+proc TclReadLine::log {value} {
+    variable LOG_MSGS
+    lappend LOG_MSGS $value
+}
 
-#proc TclReadLine::dumpLog {} {
-    #variable LOG_MSGS
-    #puts [join $LOG_MSGS "\n"]
-#}
+proc TclReadLine::dumpLog {} {
+    variable LOG_MSGS
+    if {[info exists LOG_MSGS]} {
+        puts [join $LOG_MSGS "\n"]
+    }
+}
+}
 
 proc TclReadLine::help {} {
     set helpfile [file join [file dirname $::argv0] help.txt]
