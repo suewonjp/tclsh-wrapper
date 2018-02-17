@@ -27,3 +27,9 @@ TclReadLine::keyword {string trim}
 TclReadLine::keyword {string trimleft}
 TclReadLine::keyword {string trimright}
 
+TclReadLine::keyword {tcl_startOfNextWord}
+TclReadLine::keyword {tcl_wordBreakAfter}
+TclReadLine::keyword {tcl_startOfPreviousWord}
+TclReadLine::keyword {tcl_wordBreakBefore}
+TclReadLine::keyword {tcl_endOfWord}
+
