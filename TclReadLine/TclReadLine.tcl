@@ -1006,6 +1006,7 @@ proc TclReadLine::addCmdToHistory {cmdline} {
         || [string first {history} $cmdline] == 0 } {
         return
     }
+    set cmdline [string map {\n ;} $cmdline]
     history add $cmdline
 }
 
@@ -1035,7 +1036,7 @@ proc TclReadLine::joinIncompleteCommands {} {
     variable MULTILINE_LIST
 
     lappend MULTILINE_LIST $CMDLINE
-    set CMDLINE [join $MULTILINE_LIST]
+    set CMDLINE [join $MULTILINE_LIST "\n"]
     set CMDLINE_CURSOR [string length $CMDLINE]
     set MULTILINE_LIST [list]
 }
