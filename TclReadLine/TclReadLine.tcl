@@ -81,12 +81,12 @@ proc TclReadLine::ESC {} {
     return "\033"
 }
 
-proc TclReadLine::shift {ls} {
-    upvar 1 $ls LIST
-    set ret [lindex $LIST 0]
-    set LIST [lrange $LIST 1 end]
-    return $ret
-}
+#proc TclReadLine::shift {ls} {
+    #upvar 1 $ls LIST
+    #set ret [lindex $LIST 0]
+    #set LIST [lrange $LIST 1 end]
+    #return $ret
+#}
 
 proc TclReadLine::readbuf {txt} {
     upvar 1 $txt STRING
@@ -589,20 +589,20 @@ proc TclReadLine::handleControls {} {
     set keybuffer ""
 }
 
-proc TclReadLine::addCompletionHandler {completion_extension} {
-    variable COMPLETION_HANDLERS
-    set COMPLETION_HANDLERS [concat $completion_extension $COMPLETION_HANDLERS]
-}
+#proc TclReadLine::addCompletionHandler {completion_extension} {
+    #variable COMPLETION_HANDLERS
+    #set COMPLETION_HANDLERS [concat $completion_extension $COMPLETION_HANDLERS]
+#}
 
-proc TclReadLine::delCompletionHandler {completion_extension} {
-    variable COMPLETION_HANDLERS
-    set COMPLETION_HANDLERS [lsearch -all -not -inline $COMPLETION_HANDLERS $completion_extension] 
-}
+#proc TclReadLine::delCompletionHandler {completion_extension} {
+    #variable COMPLETION_HANDLERS
+    #set COMPLETION_HANDLERS [lsearch -all -not -inline $COMPLETION_HANDLERS $completion_extension] 
+#}
 
-proc TclReadLine::getCompletionHandler {} {
-    variable COMPLETION_HANDLERS
-    return "$COMPLETION_HANDLERS"
-}
+#proc TclReadLine::getCompletionHandler {} {
+    #variable COMPLETION_HANDLERS
+    #return "$COMPLETION_HANDLERS"
+#}
 
 proc TclReadLine::handleCompletion {} {
     variable COMPLETION_HANDLERS
