@@ -17,7 +17,7 @@ namespace eval TclReadLine {
     # which will be called in list order.
     # Initialize with the "open sourced" TCL base handler
     # taken from the wiki page
-    variable COMPLETION_HANDLERS [list TclReadLine::handleCompletionBase]
+    #variable COMPLETION_HANDLERS [list TclReadLine::handleCompletionBase]
 
     variable USER_KEYWORDS []
 
@@ -604,15 +604,15 @@ proc TclReadLine::handleControls {} {
     #return "$COMPLETION_HANDLERS"
 #}
 
-proc TclReadLine::handleCompletion {} {
-    variable COMPLETION_HANDLERS
-    foreach handler $COMPLETION_HANDLERS {
-        if {[eval $handler] == 1} {
-            break
-        } 
-    }
-    return 
-}
+#proc TclReadLine::handleCompletion {} {
+    #variable COMPLETION_HANDLERS
+    #foreach handler $COMPLETION_HANDLERS {
+        #if {[eval $handler] == 1} {
+            #break
+        #} 
+    #}
+    #return 
+#}
 
 proc TclReadLine::keyword {kw} {
     variable USER_KEYWORDS
@@ -1077,7 +1077,8 @@ proc TclReadLine::tclline {} {
             append CMDLINE $trailing
             incr CMDLINE_CURSOR
         } elseif {$char == "\t"} {
-            handleCompletion
+            #handleCompletion
+            handleCompletionBase
         } elseif {$char == "\n" || $char == "\r"} {
             if {[hasIncompleteCommands]} {
                 joinIncompleteCommands
