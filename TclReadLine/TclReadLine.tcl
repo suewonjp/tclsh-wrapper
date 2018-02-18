@@ -682,48 +682,45 @@ proc TclReadLine::handleCompletionBase {} {
         if {$firstchar == "/" || $firstchar == "." || $wordstart != 0} {
             set files [glob -nocomplain -- $word*]
         }
-        if {$files == ""} {
-            # Not a path then get all possibilities:
-            if {$firstchar == "\[" || $wordstart == 0} {
-                if {$firstchar == "\["} {
-                    set word [string range $word 1 end]
-                    incr wordstart
-                }
-                # Check executables:
-                foreach dir [split $::env(PATH) :] {
-                    foreach f [glob -nocomplain -directory $dir -- $word*] {
-                        set exe [string trimleft [string range $f \
-                                                      [string length $dir] end] "/"]
-                        
-                        if {[string match "$word$gp" $exe]} {
-                            lappend execs $exe
-                        }
+        if {$firstchar == "\[" || $wordstart == 0} {
+            if {$firstchar == "\["} {
+                set word [string range $word 1 end]
+                incr wordstart
+            }
+            # Check executables:
+            foreach dir [split $::env(PATH) :] {
+                foreach f [glob -nocomplain -directory $dir -- $word*] {
+                    set exe [string trimleft [string range $f \
+                                                  [string length $dir] end] "/"]
+
+                    if {[string match "$word$gp" $exe]} {
+                        lappend execs $exe
                     }
                 }
-                # Check commands:
-                foreach x [info commands] {
-                    if {[string match "$word$gp" $x]} {
-                        lappend cmds $x
-                    }
+            }
+            # Check commands:
+            foreach x [info commands] {
+                if {[string match "$word$gp" $x]} {
+                    lappend cmds $x
                 }
-            } else {
-                # Check commands anyway:
-                foreach x [info commands] {
-                    if {[string match "$word$gp" $x]} {
-                        lappend cmds $x
-                    }
+            }
+        } else {
+            # Check commands anyway:
+            foreach x [info commands] {
+                if {[string match "$word$gp" $x]} {
+                    lappend cmds $x
                 }
-                # Check ensemble commands
-                set prevwordstart [tcl_startOfPreviousWord $CMDLINE $wordstart]
-                set prevwordend [tcl_endOfWord $CMDLINE $prevwordstart]
-                incr prevwordend -1
-                set prevword [string range $CMDLINE $prevwordstart $prevwordend]
-                if {[info command $prevword] != ""} {
-                    if {![catch {set ensemblecmds [namespace ensemble configure $prevword -map]}]} {
-                        dict for {x v} $ensemblecmds {
-                            if {[string match "$word$gp" $x]} {
-                                lappend cmds $x
-                            }
+            }
+            # Check ensemble commands
+            set prevwordstart [tcl_startOfPreviousWord $CMDLINE $wordstart]
+            set prevwordend [tcl_endOfWord $CMDLINE $prevwordstart]
+            incr prevwordend -1
+            set prevword [string range $CMDLINE $prevwordstart $prevwordend]
+            if {[info command $prevword] != ""} {
+                if {![catch {set ensemblecmds [namespace ensemble configure $prevword -map]}]} {
+                    dict for {x v} $ensemblecmds {
+                        if {[string match "$word$gp" $x]} {
+                            lappend cmds $x
                         }
                     }
                 }
