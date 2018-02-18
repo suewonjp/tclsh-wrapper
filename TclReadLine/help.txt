@@ -1,3 +1,4 @@
+##### Key Bindings
 - CONTROL + a / HOME
     - Move the cursor to the start of the line
 - CONTROL + b / LEFT
@@ -28,7 +29,6 @@
     - Delete the previous character
 - TAB
     - Keyword completion for commands, variable, file path, etc.
-
 - ALT + 0
     - Move the cursor to the start of the line. Same as CONTROL + a
 - ALT + b
@@ -61,3 +61,19 @@
     - Move the cursor to the previous blank
 - Shift + RIGHT
     - Move the cursor to the next blank
+
+##### Commands
+- exit
+    - Exit Tclsh-Wrapper
+- quit
+    - Same as exit
+- help
+    - Print out help messages
+- clear
+    - Clear the screen
+- keyword
+    - Add an arbitrary user keyword which will be expanded on keyword completion
+- alias
+    - Define an alias for an arbitrary command
+- unalias
+    - Undefine an aliase previously defined

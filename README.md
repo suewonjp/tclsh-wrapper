@@ -118,6 +118,24 @@ In this case, you can run `tclsh` directly, then it will read `~/.tclshrc` at st
 - Shift + RIGHT
     - Move the cursor to the next blank
 
+### :coffee: Commands
+- exit
+    - Exit **Tclsh-Wrapper**
+- quit
+    - Same as exit
+- help
+    - Print out help messages
+- clear
+    - Clear the screen
+- keyword
+    - Add an arbitrary user keyword which will be expanded on keyword completion
+    - See **Keyword Completion** section below
+- alias
+    - Define an alias for an arbitrary command
+    - See **Command Aliases** section below
+- unalias
+    - Undefine an aliase previously defined
+
 ### :coffee: History Search Mode
 You can navigate the command history one by one by typing `UP/CONTROL+p/ALT+k` (retrieving older command lines) or `DOWN/CONTROL+n/ALT+j` (retrieving newer command lines). 
 
