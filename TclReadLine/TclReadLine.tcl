@@ -53,7 +53,7 @@ namespace eval TclReadLine {
     variable MULTILINE_LIST [list]
 }
 
-namespace path {::tcl::mathop ::tcl::mathfunc}
+namespace path {::tcl::mathop ::tcl::mathfunc ::tcl::}
 
 # Debug purpose utils
 if 0 {
@@ -761,6 +761,7 @@ proc TclReadLine::handleCompletionBase {} {
     if {[llength $maybe] > 1} {
         clearline
         set temp ""
+        set temp2 ""
         foreach {match format} {
             vars  "35"
             cmds  "1;32"
@@ -772,11 +773,17 @@ proc TclReadLine::handleCompletionBase {} {
                 append temp "[ESC]\[${format}m"
                 foreach x [set $match] {
                     append temp "[file tail $x] "
+                    append temp2 "[file tail $x] "
                 }
                 append temp "[ESC]\[0m"
             }
         }
         print "\n$temp\n"
+        set prefix [::tcl::prefix longest $temp2 $word]
+        if {$prefix != ""} {
+            set CMDLINE [string replace $CMDLINE $wordstart $wordend $prefix]
+            set CMDLINE_CURSOR [expr {$wordstart+[string length $prefix]}]
+        }
     } elseif {[llength $maybe]} {
         set match [lindex $maybe 0]
         if {[file isdirectory $match] &&
