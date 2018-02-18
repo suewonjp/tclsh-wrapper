@@ -73,7 +73,7 @@ proc TclReadLine::dumpLog {} {
 proc TclReadLine::help {} {
     set helpfile [file join [file dirname $::argv0] help.txt]
     set f [open $helpfile]
-    puts "\n[ESC]\[33m[read $f][ESC]\[0m"
+    puts "[ESC]\[33m[read $f][ESC]\[0m"
     close $f
 }
 
@@ -970,9 +970,12 @@ proc TclReadLine::interact {} {
     
     # This is to restore the environment on exit:
     # Do not unalias this!
-    alias exit TclReadLine::doExit
+    alias exit {TclReadLine::doExit}
     
+    alias quit {TclReadLine::doExit}
     alias help {TclReadLine::help}
+
+    keyword quit
 
     variable ThisScript [info script]
     
