@@ -1,5 +1,6 @@
 TclReadLine::alias l {puts "\\033\\[35m===========================================\\033\\[0m"}
 TclReadLine::alias p puts
+TclReadLine::alias c clear
 TclReadLine::alias %d {TclReadLine::dumpLog}
 TclReadLine::alias %a {TclReadLine::alias}
 TclReadLine::alias %u {TclReadLine::unalias}
