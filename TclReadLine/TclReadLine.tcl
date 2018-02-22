@@ -1079,7 +1079,10 @@ proc TclReadLine::addCmdToHistory {cmdline} {
         || [string first {history} $cmdline] == 0 } {
         return
     }
-    set cmdline [string map {\n ;} $cmdline]
+    # We encode all newlines.
+    # We keep all history records as single line strings,
+    # but we don't want to loose all those newlines.
+    set cmdline [string map {\n \\n} $cmdline]
     history add $cmdline
 }
 
@@ -1230,6 +1233,9 @@ proc TclReadLine::tclline {} {
                     if {[info exists TclReadLine::CMDLINE_PARTIAL]} {
                         unset TclReadLine::CMDLINE_PARTIAL
                     }
+
+                    # Decode newlines. See addCmdToHistory proc for detail.
+                    set cmdline [string map {\\\\n \n \\n \n} $cmdline]
 
                     # Run the command:
                     set code [catch $cmdline res]
