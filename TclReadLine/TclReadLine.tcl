@@ -1,5 +1,5 @@
 #
-# You can find the base source for this script at /Users/bsw/test/trysomething/civilizer
+# You can find the base source for this script at http://wiki.tcl.tk/20215
 #
 # Read README.md included in the package for detail
 #
@@ -125,7 +125,7 @@ proc TclReadLine::getColumns {} {
     if {![catch {exec stty size} size]} {
         lassign $size rows cols
     } elseif {![catch {exec stty -a} err]} {
-        # check for Linux stlye stty output
+        # check for Linux style stty output
         if {[regexp {rows (= )?(\d+); columns (= )?(\d+)} $err - i1 rows i2 cols]} {
             return [set COLUMNS $cols]
         }
@@ -655,8 +655,8 @@ proc TclReadLine::completePath {_files word wordstart lastchar} {
             set head "/"
         }
     } else {
-        # The user hasn't typed any path notation so it's unclear if he wants to type filepath,
-        # but we collect candidates for filepath completion anyway and
+        # The user hasn't typed any path notation so it's unclear if he wants to type file path,
+        # but we collect candidates for file path completion anyway and
         # also collect candidates for other categories (like variables, commands, etc)
         set pathonly 0
         catch [set globresult [glob -nocomplain $word*]]
@@ -668,7 +668,7 @@ proc TclReadLine::completePath {_files word wordstart lastchar} {
             # Append the file separator to directory names
             append f "/"
         }
-        # Encode " " to "\ " like Unix shells handle filepath containing spaces.
+        # Encode " " to "\ " like Unix shells handle file path containing spaces.
         set f [string map {{ } {\ }} $f]
         lappend files $f
     }
@@ -698,9 +698,9 @@ proc TclReadLine::handleCompletionBase {} {
     }
     set wordstart [string last " " $CMDLINE $wordend]
     while {[string index $CMDLINE [expr $wordstart-1]] == "\\"} {
-        # Detect filepath containing spaces.
-        # You need to type "foo\ bar" to specify it is a filepath
-        # containg a space in it.
+        # Detect file path containing spaces.
+        # You need to type "foo\ bar" to specify it is a file path
+        # containing a space in it.
         incr wordstart -1
         set wordstart [string last " " $CMDLINE $wordstart]
     }
@@ -728,7 +728,7 @@ proc TclReadLine::handleCompletionBase {} {
     set specialchar [string index $CMDLINE [expr $wordstart - 1]]
 
     if {$pathonly == 1 || $specialchar == "/"} {
-        # We assume the user wants to type filepath...
+        # We assume the user wants to type file path...
         completePath files $word $wordstart $lastchar
         set pathonly 1
     } elseif {$specialchar == "\$"} {
@@ -769,12 +769,12 @@ proc TclReadLine::handleCompletionBase {} {
                 }
             }
         } else {
-            # Check filepath:
-            # We will set $pathonly 1 when we figured the user wanted to type filepath.
-            # (when he typed ./xxx, ../xxx, ~/xxx, etc...)
-            # And when $pathonly is 1, we ignore other categories because
+            # Check file path:
+            # $pathonly will be set to 1 when the user has typed file specific notations
+            # like ./xxx, ../xxx, ~/xxx, etc...
+            # And in that case, we ignore other categories because
             # it's weird to provide candidates for variables, commands, etc
-            # when the user has explicitly typed path notations like ./, ../, ~/ etc.
+            # when the user has explicitly typed path notations.
             set pathonly [completePath files $word $wordstart $lastchar]
 
             if {$pathonly == 0} {
