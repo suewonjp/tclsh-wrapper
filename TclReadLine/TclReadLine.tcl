@@ -1149,8 +1149,6 @@ proc TclReadLine::tclline {} {
         if {[string is print $char]} {
             set x $CMDLINE_CURSOR
             
-            if {$x < 1 && [string trim $char] == ""} continue
-            
             set trailing [string range $CMDLINE $x end]
             set CMDLINE [string replace $CMDLINE $x end]
             append CMDLINE $char
@@ -1187,7 +1185,7 @@ proc TclReadLine::tclline {} {
                 uplevel \#0 {
                     
                     # Handle aliases:
-                    set cmdline $TclReadLine::CMDLINE
+                    set cmdline [string trimleft $TclReadLine::CMDLINE]
                     #
                     # Add the cmd line to history before doing any substitutions
                     # 
