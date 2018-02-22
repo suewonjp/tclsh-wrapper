@@ -619,6 +619,61 @@ proc TclReadLine::keyword {kw} {
     lappend USER_KEYWORDS $kw
 }
 
+proc TclReadLine::completePath {_files word wordstart lastchar pathsep} {
+    variable CMDLINE
+    upvar 1 $_files files ;# Our goal is to populate this list
+    set globresult ""
+    set head ""
+    set pathonly 1
+
+    if {$word == "..$pathsep"} { ;# Exactly "../"
+        catch [set globresult [glob -nocomplain -tails -directory ".." *]]
+        set head ".."
+    } elseif {$word == ".$pathsep"} { ;# Exactly "./"
+        catch [set globresult [glob -nocomplain *]]
+        set head "."
+    } elseif {$word == "~$pathsep"} { ;# #Exactly "~/"
+        catch [set globresult [glob -nocomplain -tails -directory $::env(HOME) *]]
+        set head $::env(HOME)
+    } elseif {$word == $pathsep} { ;# Exactly "/"
+        catch [set globresult [glob -nocomplain -tails -directory $pathsep *]]
+        set head $pathsep
+    } elseif {[string index $CMDLINE [expr $wordstart - 1]] == $pathsep} {
+        if {[string index $CMDLINE [expr $wordstart - 2]] == "."} {
+            if {[string index $CMDLINE [expr $wordstart - 3]] == "."} { ;# "../xxx"
+                catch [set globresult [glob -nocomplain -tails -directory ".." $word*]]
+                set head ".."
+            } else { ;# "./xxx
+                catch [set globresult [glob -nocomplain $word*]]
+                set head "."
+            }
+        } elseif {[string index $CMDLINE [expr $wordstart - 2]] == "~"} { ;# "~/xxx
+            catch [set globresult [glob -nocomplain -tails -directory $::env(HOME) $word*]]
+            set head $::env(HOME)
+        } else { ;# "/xxx
+            catch [set globresult [glob -nocomplain -tails -directory $pathsep $word*]]
+            set head $pathsep
+        }
+    } else {
+        # The user hasn't typed any path notation so it's unclear if he wants to type filepath,
+        # but we collect candidates for filepath completion anyway and
+        # also collect candidates for other categories (like variables, commands, etc)
+        set pathonly 0
+        catch [set globresult [glob -nocomplain $word*]]
+        set head "."
+    }
+
+    foreach f $globresult {
+        if {[file isdirectory [file join $head $f]]} {
+            # Append the file separator to directory names
+            append f $pathsep
+        }
+        lappend files $f
+    }
+
+    return $pathonly
+}
+
 proc TclReadLine::handleCompletionBase {} {
     variable CMDLINE
     variable CMDLINE_CURSOR
@@ -631,6 +686,15 @@ proc TclReadLine::handleCompletionBase {} {
     
     # First find out what kind of word we need to complete:
     set wordend [expr $CMDLINE_CURSOR-1]
+    set lastchar [string index $CMDLINE $wordend]
+    set pathonly 0
+    set pathsep [file separator]
+    if {$lastchar == $pathsep} {
+        set pathonly 1
+    } elseif {$lastchar == {.} || $lastchar == {-} || $lastchar == {$}} {
+    } elseif {[string is wordchar $lastchar] == 0} {
+        return
+    }
     set wordstart [string last " " $CMDLINE $wordend]
     incr wordstart
     set word [string range $CMDLINE $wordstart $wordend]
@@ -647,21 +711,21 @@ proc TclReadLine::handleCompletionBase {} {
         }
     }
 
-    set firstchar [string index $word 0]
     set gp {*}
     if {[string length $word] > 1 && [string index $word end] == {$}} {
         set word [string replace $word end end {}]
         set gp {}
     }
-    
-    # Check if word is a variable:
-    if {$firstchar == "\$"} {
-        set word [string range $word 1 end]
-        incr wordstart
-        
-        # Check if it is an array key:proc
-        
-        set x [string first "(" $word]
+
+    set specialchar [string index $CMDLINE [expr $wordstart - 1]]
+
+    if {$pathonly == 1 || $specialchar == $pathsep} {
+        # We assume the user wants to type filepath...
+        completePath files $word $wordstart $lastchar $pathsep
+        set pathonly 1
+    } elseif {$specialchar == "\$"} {
+        # We assume the user wants to type a variable name
+        set x [string first "(" $word] ;# Check if it is an array key:proc
         if {$x != -1} {
             set v [string range $word 0 [expr {$x-1}]]
             incr x
@@ -678,15 +742,7 @@ proc TclReadLine::handleCompletionBase {} {
             }
         }
     } else {
-        # Check if word is possibly a path:
-        if {$firstchar == "/" || $firstchar == "." || $wordstart != 0} {
-            set files [glob -nocomplain -- $word*]
-        }
-        if {$firstchar == "\[" || $wordstart == 0} {
-            if {$firstchar == "\["} {
-                set word [string range $word 1 end]
-                incr wordstart
-            }
+        if {$wordstart == 0} {
             # Check executables:
             foreach dir [split $::env(PATH) :] {
                 foreach f [glob -nocomplain -directory $dir -- $word*] {
@@ -705,28 +761,39 @@ proc TclReadLine::handleCompletionBase {} {
                 }
             }
         } else {
-            # Check commands anyway:
-            foreach x [info commands] {
-                if {[string match "$word$gp" $x]} {
-                    lappend cmds $x
+            # Check filepath:
+            # We will set $pathonly 1 when we figured the user wanted to type filepath.
+            # (when he typed ./xxx, ../xxx, ~/xxx, etc...)
+            # And when $pathonly is 1, we ignore other categories because
+            # it's weird to provide candidates for variables, commands, etc
+            # when the user has explicitly typed path notations like ./, ../, ~/ etc.
+            set pathonly [completePath files $word $wordstart $lastchar $pathsep]
+
+            if {$pathonly == 0} {
+                # Check commands anyway:
+                foreach x [info commands] {
+                    if {[string match "$word$gp" $x]} {
+                        lappend cmds $x
+                    }
                 }
-            }
-            # Check ensemble commands
-            set prevwordstart [tcl_startOfPreviousWord $CMDLINE $wordstart]
-            set prevwordend [tcl_endOfWord $CMDLINE $prevwordstart]
-            incr prevwordend -1
-            set prevword [string range $CMDLINE $prevwordstart $prevwordend]
-            if {[info command $prevword] != ""} {
-                if {![catch {set ensemblecmds [namespace ensemble configure $prevword -map]}]} {
-                    dict for {x v} $ensemblecmds {
-                        if {[string match "$word$gp" $x]} {
-                            lappend cmds $x
+                # Check ensemble commands
+                set prevwordstart [tcl_startOfPreviousWord $CMDLINE $wordstart]
+                set prevwordend [tcl_endOfWord $CMDLINE $prevwordstart]
+                incr prevwordend -1
+                set prevword [string range $CMDLINE $prevwordstart $prevwordend]
+                if {[info command $prevword] != ""} {
+                    if {![catch {set ensemblecmds [namespace ensemble configure $prevword -map]}]} {
+                        dict for {x v} $ensemblecmds {
+                            if {[string match "$word$gp" $x]} {
+                                lappend cmds $x
+                            }
                         }
                     }
                 }
             }
+
         }
-        if {$wordstart != 0} {
+        if {$wordstart != 0 && $pathonly == 0} {
             # Check variables anyway:
             set x [string first "(" $word]
             if {$x != -1} {
@@ -747,10 +814,12 @@ proc TclReadLine::handleCompletionBase {} {
         }
     }
 
-    variable USER_KEYWORDS
-    foreach kw $USER_KEYWORDS {
-        if {[string match "$word$gp" $kw]} {
-            lappend extras $kw
+    if {$pathonly == 0} {
+        variable USER_KEYWORDS
+        foreach kw $USER_KEYWORDS {
+            if {[string match "$word$gp" $kw]} {
+                lappend extras $kw
+            }
         }
     }
 
@@ -770,12 +839,13 @@ proc TclReadLine::handleCompletionBase {} {
                 append temp "[ESC]\[${format}m"
                 foreach x [set $match] {
                     append temp "[file tail $x] "
-                    append temp2 "[file tail $x] "
+                    append temp2 "$x "
                 }
                 append temp "[ESC]\[0m"
             }
         }
         print "\n$temp\n"
+        # We provide the common longest prefix for the user to type less characters.
         set prefix [::tcl::prefix longest $temp2 $word]
         if {$prefix != ""} {
             set CMDLINE [string replace $CMDLINE $wordstart $wordend $prefix]
@@ -783,10 +853,6 @@ proc TclReadLine::handleCompletionBase {} {
         }
     } elseif {[llength $maybe]} {
         set match [lindex $maybe 0]
-        if {[file isdirectory $match] &&
-            [string index $match end] != "/"} {
-            append match "/"
-        }
         if {$match != ""} {
             set CMDLINE \
                 [string replace $CMDLINE $wordstart $wordend $match]
