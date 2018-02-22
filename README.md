@@ -227,13 +227,19 @@ You can invoke `tclsh` as before by running `tcl`, and invoke `wish` by running 
 
 - This package will work for most of Unix like systems (Linux, Mac OS X, Cygwin, etc), but it doesn't support Windows for now.
     - I mean `tclsh.exe`, the Windows executable, not `tclsh` on Cygwin
-- You many notice that the command line cursor flickers at times when it moves fast. But it's not a problem in terms of functionalities and you can safely ignore it.
+- You may notice that the command line cursor flickers at times when it moves fast. But it's not a problem in terms of functionalities and you can safely ignore it.
 - ALT key limitation
     - **Tclsh-Wrapper** assumes your terminal handles ALT keys in a *ESC prefixed* way  
     - When you're not sure, execute `cat -v` and type `ALT+a` (Press `ALT` and `a` together)
     - When the terminal prints something like `^[a`, then you're OK.  
     - If your terminal prints something different, **Tclsh-Wrapper** may not recognize key bindings with ALT key press.  
         - Many terminals offer an option for you to switch how it handles ALT key press. Consult the help or manual of your terminal.
+- Support for filepath containing spaces
+    - Since version 1.4
+    - Filepath containing spaces can be recognized only when you prepend a backslash in front of the space like `~/Google\ Drive`.
+    - As a limitation, no other method is supported
+        - **Tclsh-Wrapper** can't recognize quoted path with single/double quotation marks.
+        - Thus, don't expect quoting path containing spaces would work. Only prepending backslash will work.
 
 
 ### :copyright: COPYRIGHT/LICENSE/DISCLAIMER

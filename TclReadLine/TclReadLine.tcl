@@ -668,6 +668,8 @@ proc TclReadLine::completePath {_files word wordstart lastchar pathsep} {
             # Append the file separator to directory names
             append f $pathsep
         }
+        # Encode " " to "\ " like Unix shells handle filepath containing spaces.
+        set f [string map {{ } {\ }} $f]
         lappend files $f
     }
 
@@ -696,6 +698,13 @@ proc TclReadLine::handleCompletionBase {} {
         return
     }
     set wordstart [string last " " $CMDLINE $wordend]
+    while {[string index $CMDLINE [expr $wordstart-1]] == "\\"} {
+        # Detect filepath containing spaces.
+        # You need to type "foo\ bar" to specify it is a filepath
+        # containg a space in it.
+        incr wordstart -1
+        set wordstart [string last " " $CMDLINE $wordstart]
+    }
     incr wordstart
     set word [string range $CMDLINE $wordstart $wordend]
     
