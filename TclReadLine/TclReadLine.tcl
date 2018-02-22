@@ -1074,7 +1074,7 @@ proc TclReadLine::check_partial_keyseq {buffer} {
 }
 
 proc TclReadLine::addCmdToHistory {cmdline} {
-    if { $cmdline == {exit}
+    if { $cmdline == {exit} || $cmdline == {quit} || $cmdline == {help}
         || $cmdline == [history event 0]
         || [string first {history} $cmdline] == 0 } {
         return
