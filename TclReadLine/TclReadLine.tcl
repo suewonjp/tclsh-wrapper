@@ -619,26 +619,26 @@ proc TclReadLine::keyword {kw} {
     lappend USER_KEYWORDS $kw
 }
 
-proc TclReadLine::completePath {_files word wordstart lastchar pathsep} {
+proc TclReadLine::completePath {_files word wordstart lastchar} {
     variable CMDLINE
     upvar 1 $_files files ;# Our goal is to populate this list
     set globresult ""
     set head ""
     set pathonly 1
 
-    if {$word == "..$pathsep"} { ;# Exactly "../"
+    if {$word == "../"} { ;# Exactly "../"
         catch [set globresult [glob -nocomplain -tails -directory ".." *]]
         set head ".."
-    } elseif {$word == ".$pathsep"} { ;# Exactly "./"
+    } elseif {$word == "./"} { ;# Exactly "./"
         catch [set globresult [glob -nocomplain *]]
         set head "."
-    } elseif {$word == "~$pathsep"} { ;# #Exactly "~/"
+    } elseif {$word == "~/"} { ;# #Exactly "~/"
         catch [set globresult [glob -nocomplain -tails -directory $::env(HOME) *]]
         set head $::env(HOME)
-    } elseif {$word == $pathsep} { ;# Exactly "/"
-        catch [set globresult [glob -nocomplain -tails -directory $pathsep *]]
-        set head $pathsep
-    } elseif {[string index $CMDLINE [expr $wordstart - 1]] == $pathsep} {
+    } elseif {$word == "/"} { ;# Exactly "/"
+        catch [set globresult [glob -nocomplain -tails -directory "/" *]]
+        set head "/"
+    } elseif {[string index $CMDLINE [expr $wordstart - 1]] == "/"} {
         if {[string index $CMDLINE [expr $wordstart - 2]] == "."} {
             if {[string index $CMDLINE [expr $wordstart - 3]] == "."} { ;# "../xxx"
                 catch [set globresult [glob -nocomplain -tails -directory ".." $word*]]
@@ -651,8 +651,8 @@ proc TclReadLine::completePath {_files word wordstart lastchar pathsep} {
             catch [set globresult [glob -nocomplain -tails -directory $::env(HOME) $word*]]
             set head $::env(HOME)
         } else { ;# "/xxx
-            catch [set globresult [glob -nocomplain -tails -directory $pathsep $word*]]
-            set head $pathsep
+            catch [set globresult [glob -nocomplain -tails -directory "/" $word*]]
+            set head "/"
         }
     } else {
         # The user hasn't typed any path notation so it's unclear if he wants to type filepath,
@@ -666,7 +666,7 @@ proc TclReadLine::completePath {_files word wordstart lastchar pathsep} {
     foreach f $globresult {
         if {[file isdirectory [file join $head $f]]} {
             # Append the file separator to directory names
-            append f $pathsep
+            append f "/"
         }
         # Encode " " to "\ " like Unix shells handle filepath containing spaces.
         set f [string map {{ } {\ }} $f]
@@ -690,8 +690,7 @@ proc TclReadLine::handleCompletionBase {} {
     set wordend [expr $CMDLINE_CURSOR-1]
     set lastchar [string index $CMDLINE $wordend]
     set pathonly 0
-    set pathsep [file separator]
-    if {$lastchar == $pathsep} {
+    if {$lastchar == "/"} {
         set pathonly 1
     } elseif {$lastchar == {.} || $lastchar == {-} || $lastchar == {$}} {
     } elseif {[string is wordchar $lastchar] == 0} {
@@ -728,9 +727,9 @@ proc TclReadLine::handleCompletionBase {} {
 
     set specialchar [string index $CMDLINE [expr $wordstart - 1]]
 
-    if {$pathonly == 1 || $specialchar == $pathsep} {
+    if {$pathonly == 1 || $specialchar == "/"} {
         # We assume the user wants to type filepath...
-        completePath files $word $wordstart $lastchar $pathsep
+        completePath files $word $wordstart $lastchar
         set pathonly 1
     } elseif {$specialchar == "\$"} {
         # We assume the user wants to type a variable name
@@ -776,7 +775,7 @@ proc TclReadLine::handleCompletionBase {} {
             # And when $pathonly is 1, we ignore other categories because
             # it's weird to provide candidates for variables, commands, etc
             # when the user has explicitly typed path notations like ./, ../, ~/ etc.
-            set pathonly [completePath files $word $wordstart $lastchar $pathsep]
+            set pathonly [completePath files $word $wordstart $lastchar]
 
             if {$pathonly == 0} {
                 # Check commands anyway:
