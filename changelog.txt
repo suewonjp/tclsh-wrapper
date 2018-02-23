@@ -2,7 +2,7 @@ Copyright (c) 2018- Suewon Bahng, https://github.com/suewonjp
 
 Last Updated (2018-02-23)
 
-## Version 1.4 (2018-xx-xx)
+## Version 1.4 (2018-02-23)
 - Bug fix : issue when pasting newline attached command from the system clipboard
 - Bug fix : fatal exception on some keyword autocompletion situations
 - Bug fix : issue on keyword completion for file path containing spaces
