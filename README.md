@@ -187,11 +187,20 @@ Also there is a `TclReadLine::unalias` command so you can remove them.
 ##### :tea: Keyword Completion
 Simple keyword completion is provided. For example, `fore<TAB>` will expand to `foreach`.
 
-By default, you can expand patterns if that matches **variables/Tcl/Tk commands/executables in the system path/files under the working directory**. By default, you can't match every Tcl/Tk command. Also you can't match subcommands.
+By default, you can expand patterns if that matches either of the following:
 
-However, you can extend the list of match candidates using `TclReadLine::keyword` API. For example, inserting the line `TclReadLine::keyword {TclReadLine::}` in the configuration file will let you type just `TclR<TAB>` for `TclReadLine::`.
+- Variables
+- Tcl/Tk commands
+- Executables in the system path
+- File path
 
-For another example, inserting the following lines into the configuration file will let you just type `s*tol<TAB>` for `string tblower`.
+Understand that you may not match every Tcl/Tk command. ( It seems like a limitation of Tcl interpretor rather than **Tclsh-Wrapper** ).
+
+You can match Ensemble commands such as `string`, `array`, etc. (Since version 1.4)
+
+Also, you can extend the list of match candidates using `TclReadLine::keyword` API. For example, inserting the line `TclReadLine::keyword {TclReadLine::}` in the configuration file will let you type just `TclR<TAB>` for `TclReadLine::`.
+
+For another example, inserting the following lines into the configuration file will let you just type `s*tol<TAB>` for `string tolower`.
 
         TclReadLine::keyword {string tolower}
         TclReadLine::keyword {string totitle}
@@ -234,9 +243,9 @@ You can invoke `tclsh` as before by running `tcl`, and invoke `wish` by running 
     - When the terminal prints something like `^[a`, then you're OK.  
     - If your terminal prints something different, **Tclsh-Wrapper** may not recognize key bindings with ALT key press.  
         - Many terminals offer an option for you to switch how it handles ALT key press. Consult the help or manual of your terminal.
-- Support for filepath containing spaces
+- Support for file path containing spaces
     - Since version 1.4
-    - Filepath containing spaces can be recognized only when you prepend a backslash in front of the space like `~/Google\ Drive`.
+    - File path containing spaces can be recognized only when you prepend a backslash in front of the space like `~/Google\ Drive`.
     - As a limitation, no other method is supported
         - **Tclsh-Wrapper** can't recognize quoted path with single/double quotation marks.
         - Thus, don't expect quoting path containing spaces would work. Only prepending backslash will work.
