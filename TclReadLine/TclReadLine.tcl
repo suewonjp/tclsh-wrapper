@@ -1243,6 +1243,19 @@ proc TclReadLine::tclline {} {
                     # Decode newlines. See addCmdToHistory proc for detail.
                     set cmdline [string map {\\\\n \n \\n \n} $cmdline]
 
+                    if {[string index $cmdline 0] == {$}} {
+                        set varname [string range $cmdline 1 end]
+                        if {[info exists $varname]} {
+                            # Print a variable value when just typing that variable.
+                            # e.g.) It makes typing `$foo<Enter>` equivalent to typing `puts $foo<Enter>`
+                            if {[array exists $varname]} {
+                                set cmdline "array get $varname"
+                            } else {
+                                set cmdline [join "puts $cmdline"]
+                            }
+                        }
+                    }
+
                     # Run the command:
                     set code [catch $cmdline res]
                     rename ::info TclReadLine::localInfo
